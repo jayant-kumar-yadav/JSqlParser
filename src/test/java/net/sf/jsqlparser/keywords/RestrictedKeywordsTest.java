@@ -219,7 +219,13 @@ public class RestrictedKeywordsTest {
     void checkWhitelistedAllowedAtAllPositions(String keyword) throws JSQLParserException {
         final String imageFromKeyword = JavaCCExtractor.imageFromKeyword(keyword);
         if (imageFromKeyword != null) {
-            assertSqlCanBeParsedAndDeparsed(String.format("SELECT %1$s.%1$s AS %1$s FROM %1$s.%1$s AS %1$s", imageFromKeyword));
+            final String sql = String.format("SELECT %1$s.%1$s AS %1$s FROM %1$s.%1$s AS %1$s", imageFromKeyword);
+            try {
+                assertSqlCanBeParsedAndDeparsed(sql);
+            } catch (JSQLParserException ex) {
+                LOG.log(Level.SEVERE, "working on: {0}", sql);
+                throw ex;
+            }
         } else {
             LOG.log(Level.INFO, "No image found for {0}. Only literal strings are tested!", keyword);
         }
@@ -229,12 +235,39 @@ public class RestrictedKeywordsTest {
         return JavaCCExtractor.whitelistedKeywords("RelObjectName", "RelObjectNameExt", "RelObjectNameExt2").stream();
     }
 
-    @ParameterizedTest(name = "no Alias Keyword {0}")
+    @ParameterizedTest(name = "{index} => no Alias Keyword {arguments}")
     @MethodSource("noAliasKeywords")
     void checkWhitelistedNoAlias(String keyword) throws JSQLParserException {
         final String imageFromKeyword = JavaCCExtractor.imageFromKeyword(keyword);
         if (imageFromKeyword != null) {
-            assertSqlCanBeParsedAndDeparsed(String.format("SELECT %1$s.%1$s.%1$s AS \"%1$s\" FROM %1$s ORDER BY %1$s", imageFromKeyword));
+            final String sql = String.format("SELECT %1$s.%1$s.%1$s AS \"%1$s\" FROM %1$s ORDER BY %1$s", imageFromKeyword);
+            try {
+               assertSqlCanBeParsedAndDeparsed(sql);
+            } catch (JSQLParserException ex) {
+                LOG.log(Level.SEVERE, "working on: {0}", sql);
+                throw ex;
+            }
+        } else {
+            LOG.info("No image found for " + keyword + ". Only literal strings are tested!");
+        }
+    }
+    
+    public static Stream<String> noAliasFromKeywords() {
+        return JavaCCExtractor.whitelistedKeywords("RelObjectNameExt", "RelObjectNameExt2").stream();
+    }
+
+    @ParameterizedTest(name = "{index} => no Alias FROM Keyword {arguments}")
+    @MethodSource("noAliasFromKeywords")
+    void checkWhitelistedNoAliasFromKeywords(String keyword) throws JSQLParserException {
+        final String imageFromKeyword = JavaCCExtractor.imageFromKeyword(keyword);
+        if (imageFromKeyword != null) {
+            final String sql = String.format("SELECT %1$s AS \"%1$s\" FROM mytable ORDER BY %1$s", imageFromKeyword);
+            try {
+               assertSqlCanBeParsedAndDeparsed(sql);
+            } catch (JSQLParserException ex) {
+                LOG.log(Level.SEVERE, "working on: {0}", sql);
+                throw ex;
+            }
         } else {
             LOG.info("No image found for " + keyword + ". Only literal strings are tested!");
         }
