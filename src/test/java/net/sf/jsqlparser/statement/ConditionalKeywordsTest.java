@@ -22,14 +22,11 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static net.sf.jsqlparser.test.TestUtils.assertSqlCanBeParsedAndDeparsed;
-import org.junit.jupiter.api.Disabled;
 
 /**
  *
  * @author <a href="mailto:andreas@manticore-projects.com">Andreas Reichel</a>
  */
-
-@Disabled
 public class ConditionalKeywordsTest {
     public final static Logger LOGGER = Logger.getLogger(ConditionalKeywordsTest.class.getName());
 
