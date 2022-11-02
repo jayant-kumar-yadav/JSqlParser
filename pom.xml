@@ -628,7 +628,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <pmdVersion>6.46.0</pmdVersion>
-        <javacc.version>7.0.11</javacc.version>
+        <javacc.version>7.0.12</javacc.version>
     </properties>
 
     <description>JSqlParser parses an SQL statement and translate it into a hierarchy of Java classes.
