@@ -91,7 +91,6 @@ public class RestrictedKeywordsTest {
             "K_UPDATE",
             "K_BEGIN",
             "K_MERGE",
-            "K_CONNECT",
             "K_RECURSIVE",
             "K_XMLTEXT",
             "K_THEN",
@@ -126,7 +125,6 @@ public class RestrictedKeywordsTest {
             "K_NEXT",
             "K_REGEXP",
             "K_USE",
-            "K_IGNORE",
             "K_MOVEMENT",
             "K_BINARY",
             "K_YAML",
@@ -186,7 +184,118 @@ public class RestrictedKeywordsTest {
             "K_EXISTS",
             "K_GLOBAL",
             "K_RENAME",
-            "K_ELSE");
+            "K_ELSE",
+            "K_DESCRIBE",
+            "K_MATERIALIZED",
+            "K_REPLACE",
+            "K_INDEX",
+            "K_KEY",
+            "K_DUPLICATE",
+            "K_FIRST",
+            "K_ROWS",
+            "K_TEMP",
+            "K_NO",
+            "K_PARALLEL",
+            "K_RANGE",
+            "K_HISTORY",
+            "K_SIZE",
+            "K_DBA_RECYCLEBIN",
+            "K_DIV",
+            "K_FORMAT",
+            "K_LINK",
+            "K_DUMP",
+            "K_ZONE",
+            "K_COMMENT",
+            "K_INSERT",
+            "K_XML",
+            "K_ACTIVE",
+            "K_VALIDATE",
+            "K_TABLESPACE",
+            "K_READ",
+            "K_COSTS",
+            "K_TIMEOUT",
+            "K_TRUE",
+            "K_USER",
+            "K_OF",
+            "K_SEPARATOR",
+            "K_RECYCLEBIN",
+            "K_SYNONYM",
+            "K_REGISTER",
+            "K_ARCHIVE",
+            "K_FLUSH",
+            "K_AT",
+            "K_END",
+            "K_ALGORITHM",
+            "K_COMMIT",
+            "K_LEADING",
+            "K_NULLS",
+            "K_CYCLE",
+            "K_SHUTDOWN",
+            "K_PERCENT",
+            "K_PATH",
+            "K_PARTITION",
+            "K_SEQUENCE",
+            "K_TO",
+            "K_CASCADE",
+            "K_TRUNCATE",
+            "K_DO",
+            "K_OPEN",
+            "K_SIBLINGS",
+            "K_RESUME",
+            "K_UNSIGNED",
+            "K_COLUMN",
+            "K_TABLE",
+            "K_CHANGE",
+            "K_JSON",
+            "K_TRY_CAST",
+            "K_OVER",
+            "K_SAFE_CAST",
+            "K_FN",
+            "K_NOLOCK",
+            "K_CHECKPOINT",
+            "K_BYTE",
+            "K_SUSPEND",
+            "K_PRECISION",
+            "K_SESSION",
+            "K_ARRAY_LITERAL",
+            "K_FULLTEXT",
+            "K_VIEW",
+            "K_PRIMARY",
+            "K_RESTRICTED",
+            "K_DESC",
+            "K_LAST",
+            "K_DEFAULT",
+            "K_SWITCH",
+            "K_DISCONNECT",
+            "K_ENABLE",
+            "K_QUIESCE",
+            "K_EXCLUDE",
+            "K_FOLLOWING",
+            "K_LOG",
+            "K_ACTION",
+            "K_CHARACTER",
+            "K_FALSE",
+            "K_ROW",
+            "K_TEMPORARY",
+            "K_ISNULL",
+            "K_QUERY",
+            "K_CHAR",
+            "K_KEEP",
+            "K_SIGNED",
+            "K_PRIOR",
+            "K_SKIP",
+            "K_LOCAL",
+            "K_SYSTEM",
+            "K_UNQIESCE",
+            "K_SCHEMA",
+            "K_COLUMNS",
+            "K_DISABLE",
+            "K_CAST",
+            "K_FILTER",
+            "K_LOCKED",
+            "K_CASE",
+            "K_TYPE",
+            "K_EXTRACT");
 
     /**
      * Here all keywords that are restricted should be detected. If someone adds a keyword without adding it to the
@@ -195,7 +304,7 @@ public class RestrictedKeywordsTest {
     @Test
     void checkRestrictedKeywords() {
         assertThat(JavaCCExtractor.restrictedKeywords())
-                .withFailMessage("restricted tokens/keywords must be in RestrictedKeywordsTest.RESTRICTED_KEYWORDS and whitelisted must be used in RelObjectNames productions")
+                .as("restricted tokens/keywords must be in RestrictedKeywordsTest.RESTRICTED_KEYWORDS and whitelisted must be used in RelObjectNames productions")
                 .containsExactlyInAnyOrderElementsOf(RESTRICTED_KEYWORDS);
     }
 
@@ -214,60 +323,42 @@ public class RestrictedKeywordsTest {
         return JavaCCExtractor.whitelistedKeywords("RelObjectNameWithoutValue").stream();
     }
 
-    @ParameterizedTest(name = "all Position Keyword {0}")
+    @ParameterizedTest(name = "all position keyword {arguments}")
     @MethodSource("allPositionKeywords")
     void checkWhitelistedAllowedAtAllPositions(String keyword) throws JSQLParserException {
         final String imageFromKeyword = JavaCCExtractor.imageFromKeyword(keyword);
         if (imageFromKeyword != null) {
-            final String sql = String.format("SELECT %1$s.%1$s AS %1$s FROM %1$s.%1$s AS %1$s", imageFromKeyword);
-            try {
-                assertSqlCanBeParsedAndDeparsed(sql);
-            } catch (JSQLParserException ex) {
-                LOG.log(Level.SEVERE, "working on: {0}", sql);
-                throw ex;
-            }
+            assertSqlCanBeParsedAndDeparsed(String.format("SELECT %1$s.%1$s AS %1$s FROM %1$s.%1$s AS %1$s", imageFromKeyword));
         } else {
             LOG.log(Level.INFO, "No image found for {0}. Only literal strings are tested!", keyword);
         }
     }
 
     public static Stream<String> noAliasKeywords() {
-        return JavaCCExtractor.whitelistedKeywords("RelObjectName", "RelObjectNameExt", "RelObjectNameExt2").stream();
+        return JavaCCExtractor.whitelistedKeywords("RelObjectName").stream();
     }
 
-    @ParameterizedTest(name = "{index} => no Alias Keyword {arguments}")
+    @ParameterizedTest(name = "no alias keyword {arguments}")
     @MethodSource("noAliasKeywords")
     void checkWhitelistedNoAlias(String keyword) throws JSQLParserException {
         final String imageFromKeyword = JavaCCExtractor.imageFromKeyword(keyword);
         if (imageFromKeyword != null) {
-            final String sql = String.format("SELECT %1$s.%1$s.%1$s AS \"%1$s\" FROM %1$s ORDER BY %1$s", imageFromKeyword);
-            try {
-               assertSqlCanBeParsedAndDeparsed(sql);
-            } catch (JSQLParserException ex) {
-                LOG.log(Level.SEVERE, "working on: {0}", sql);
-                throw ex;
-            }
+            assertSqlCanBeParsedAndDeparsed(String.format("SELECT %1$s.%1$s.%1$s AS \"%1$s\" FROM %1$s ORDER BY %1$s", imageFromKeyword));
         } else {
             LOG.info("No image found for " + keyword + ". Only literal strings are tested!");
         }
     }
-    
+
     public static Stream<String> noAliasFromKeywords() {
         return JavaCCExtractor.whitelistedKeywords("RelObjectNameExt", "RelObjectNameExt2").stream();
     }
 
-    @ParameterizedTest(name = "{index} => no Alias FROM Keyword {arguments}")
+    @ParameterizedTest(name = "no alias no from keyword {arguments}")
     @MethodSource("noAliasFromKeywords")
     void checkWhitelistedNoAliasFromKeywords(String keyword) throws JSQLParserException {
         final String imageFromKeyword = JavaCCExtractor.imageFromKeyword(keyword);
         if (imageFromKeyword != null) {
-            final String sql = String.format("SELECT %1$s AS \"%1$s\" FROM mytable ORDER BY %1$s", imageFromKeyword);
-            try {
-               assertSqlCanBeParsedAndDeparsed(sql);
-            } catch (JSQLParserException ex) {
-                LOG.log(Level.SEVERE, "working on: {0}", sql);
-                throw ex;
-            }
+            assertSqlCanBeParsedAndDeparsed(String.format("SELECT mytest.%1$s AS \"%1$s\" FROM mytable", imageFromKeyword));
         } else {
             LOG.info("No image found for " + keyword + ". Only literal strings are tested!");
         }
